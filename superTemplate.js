@@ -65,7 +65,7 @@ $$.create = function(uniqueId,model)	 {
 	
 	
 	};
-$$.renderDomRec = function (objDom,model)	 {
+$$.renderDomRec = function (objDom,model,parent,root)	 {
 	var srcHtml =objDom.html(); 
 
 	if (!model) {
@@ -75,6 +75,10 @@ $$.renderDomRec = function (objDom,model)	 {
 	if (value instanceof $$Model ) {
 		value.initAttributes(objDom);
 		value = model.value ;
+		model.parent = parent;
+		if (model !== root) {
+			model.root = root; }
+		
 
 		}
 	if ($$Model.isString(value)) {
@@ -90,9 +94,8 @@ $$.renderDomRec = function (objDom,model)	 {
 			var div=$("<div>");
 			div.attr("id",idx);
 			div.html(srcHtml);
-			$$.renderDomRec(div,val);
+			$$.renderDomRec(div,val,model,root);
 			$.each(div.children(), function (i,o){
-				
 			objDom.append($(o));
 			});
 			});	
@@ -108,7 +111,7 @@ $$.renderDomRec = function (objDom,model)	 {
 			if (o.length === 0) {
 				alert("Pas trouve "+val);
 			}
-			$$.renderDomRec(o,m);
+			$$.renderDomRec(o,m,model,root);
 			
 			});}
 	
@@ -123,6 +126,6 @@ $$.render = function (uniqueId) {
 		var objDom = $(uniqueId);
 		var o = $$.htmlSourceById[uniqueId];
         objDom.html(o.html); 
-        $$.renderDomRec(objDom, o.model);
+        $$.renderDomRec(objDom, o.model,undefined,o.model);
 	
 	}

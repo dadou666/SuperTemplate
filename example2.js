@@ -1,69 +1,24 @@
 
 
 
-var nom="Dadou";
-function changeNom(model) {
-	model.value=[{valeur:"Dadou"},{valeur:"Nini"},{valeur:"Killer"}];
-	model.dom.click(function () {
-	nom = $("#choixNom option:selected").text(); });
+
+
+function ihm(model) {
+	if (!model.value) {
+		model.value= {
+			groupes:[],
+			choixNom:$$(changeNom),
+			choixPrenom:$$(changePrenom),
+			ajoutPersonne:$$(ajoutPersonne),
+			ajoutGroupe:$$(ajouterGroupe)
+		};
 	}
-var prenom="Zodiac";
+}
+	
 
-function changePrenom(model) {
-	model.value=[{valeur:"Zodiac"},{valeur:"Patibular"},{valeur:"Zone"},{valeur:"Alcool"}];
-	model.dom.click(function () {
-	prenom = $("#choixPrenom option:selected").text();});
-	}	
+	
 
-var groupeSelection  ;
-var groupes = [];
-var selection;
-
-		
-function ajouterGroupe(model) 
-{
-	model.value = "Ajouter groupe";	
-	model.dom.click( function () 
-	{
-		var groupeModel = {holder: {}};
-		var selectionner=function (model) 
-			{
-				if (!model.value) {
-					model.value="O";	}
-				model.dom.text(model.value);
-				model.dom.click(function () 
-				{
-					if (selection) 
-					{
-						selection.dom.text("O");
-						selection.value="O";
-						groupeSelection = undefined;		
-					}
-					if (selection !== model) 
-					{
-						selection= model;
-						model.dom.text("X");
-						model.value="X";
-						groupeSelection=groupeModel;
-					} else 
-					{
-					selection = undefined;				
-					}
-				});
-			}
-		var inputGroupe=function (model) 
-			{
-				if (!model.value) {
-					model.value ="";
-					}
-				model.dom.val(model.value); 
-				model.dom.focusout(function () 
-				{
-					model.value = model.dom.val();
-				});
-		 	}	
-
-		var cacherAfficher=function  (model) 
+function  cacherAfficher(model) 
 				{
 					var md=model;
 					if (!model.value) {
@@ -96,39 +51,96 @@ function ajouterGroupe(model)
 					});	
 				}
 				
+function selectionner(model) 
+			{
+				if (!model.value) {
+					model.value="O";	}
+				model.dom.text(model.value);
+				model.dom.click(function ()					{
+					if (model.root.selection) 
+					{
+						model.root.selection.dom.text("O");
+						model.root.selection.value="O";
+						model.root.groupeSelection = undefined;		
+					}
+					if (model.root.selection !== model) 
+					{
+						model.root.selection= model;
+						model.dom.text("X");
+						model.value="X";
+						model.root.groupeSelection=model.parent;
+
+						
+					} else 
+					{
+					model.root.selection = undefined;				
+					}
+				});
+			}
+			
+function inputGroupe(model) 
+			{
+				if (!model.value) {
+					model.value ="";
+					}
+				model.dom.val(model.value); 
+				model.dom.focusout(function () 
+				{
+					model.value = model.dom.val();
+				});
+		 	}			
+function changeNom(model) {
+	model.value=[{valeur:"Dadou"},{valeur:"Nini"},{valeur:"Killer"}];
+	model.dom.click(function () {
+	model.root.nom = $("#choixNom option:selected").text(); });
+	}
+
+
+function changePrenom(model) {
+	model.value=[{valeur:"Zihm.odiac"},{valeur:"Patibular"},{valeur:"Zone"},{valeur:"Alcool"}];
+	model.dom.click(function () {
+	model.root.prenom = $("#choixPrenom option:selected").text();});
+	}	
+
+
+
 
 		
-
-groupeModel.holder.groupe=$$(inputGroupe);
-groupeModel.holder.cacherAfficher=$$(cacherAfficher);
-groupeModel.holder.personnes = [] ;
-groupeModel.holder.selectionner = $$(selectionner);
-groupes.push(groupeModel);
-$$.render("#ihm");		
-});	
+function ajouterGroupe(model) 
+{
+	model.value = "Ajouter groupe";	
+	model.dom.click( function () 
+	{
+		var groupeModel = {holder: {}};
+		groupeModel.holder.groupe=$$(inputGroupe);
+		groupeModel.holder.cacherAfficher=$$(cacherAfficher);
+		groupeModel.holder.personnes = [] ;
+		groupeModel.holder.selectionner = $$(selectionner);
+		model.root.value.groupes.push(groupeModel);
+		$$.render("#ihm");		
+	});	
 }
 
-function ajouterPersonne(nom,prenom) {
-	var g= groupeSelection;
+function ajouterPersonne(model,nom,prenom) {
+	var g= model.root.groupeSelection;
 	if (!g) {
 		return;
 		}
-	var personnes = g.holder.personnes;
+	var personnes = g.personnes;
 personnes.push({tr:{nom:nom,prenom:prenom,supprimer:{ action:$$(supprimer(g,nom,prenom))}}});
 
 	}
 	
 
-
-	
-function ajouter(model) {
-model.value = "Ajouter personne";
-model.dom.click(function () {
-	if (nom!= undefined && prenom != undefined) {
- ajouterPersonne(nom,prenom);
-$$.render("#ihm");	
-}});
-	}
+function ajoutPersonne(model) {
+	model.value = "Ajouter personne";
+	model.dom.click(function () {
+		if (model.root.nom!= undefined && model.root.prenom != undefined) {
+ 			ajouterPersonne(model,model.root.nom,model.root.prenom);
+			$$.render("#ihm");	
+		}
+	});
+}
 	
 function supprimer(g,nom,prenom) {
 	var groupeModel = g;
@@ -138,7 +150,7 @@ function supprimer(g,nom,prenom) {
 		model.dom.click(function () 
 		{
 			var newListePersonnes = [];
-			$.each(groupeModel.holder.personnes,function (i,val) 
+			$.each(groupeModel.personnes,function (i,val) 
 				{
 					if (!(val.tr.nom === nom && val.tr.prenom === prenom)) 
 					{
@@ -146,7 +158,7 @@ function supprimer(g,nom,prenom) {
 					}
 							
 				});
-			groupeModel.holder.personnes= newListePersonnes;
+			groupeModel.personnes= newListePersonnes;
 			$$.render("#ihm");		
 		});
 		
@@ -156,18 +168,7 @@ function supprimer(g,nom,prenom) {
 $(document).ready(function(){
 
 
-$$.create("#ihm",{
-		groupes:groupes,
-			
-		choixNom:$$(changeNom),
-		choixPrenom:$$(changePrenom),
-		ajoutPersonne:$$(ajouter),
-		ajoutGroupe:$$(ajouterGroupe)
-				
-				});
+$$.create("#ihm",$$(ihm));
 $$.render("#ihm");			
-	
-
-
 
 });
