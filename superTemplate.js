@@ -1,17 +1,25 @@
-/*<objSimple> = { <nom>: <obj> | $$(<obj>, fonction | map ) }
+/*<objSimple> = { <nom>: <obj> | $$(<obj>, fonction  )  | $$(function) | $$(<obj>)}
 <objArray> = [ <objSimple> *]
-<obj> =  <objSimple> | <objArray> | chaine | fonction
+<obj> =  <objSimple> | <objArray> | chaine 
 
 
-$$.install (objDom,<objSimple> |<objArray>)
+$$.create (IdObjDom,<objSimple> |<objArray>)
+$$.render(IdObjDom)
 
-{ nom:$$("toto") , prenom:$$("momo") }
 
  */
-function $$Model(mapOrFct) {
-	this.mapOrFct = mapOrFct ;
-	
+function $$Model(a0,a1) {
+	if (typeof a0 === "function") {
+		this.builder = a0;
+		return;
 	}
+	this.value = a0;
+	this.builder = a1;
+	this.parent = undefined;
+	this.dom = undefined;
+	this.root = undefined;
+}
+
 	
 $$Model.isArray = function (value) {
 	return Array.isArray(value);
@@ -30,27 +38,16 @@ $$Model.isObject = function (value) {
 };
 
 $$Model.prototype.initAttributes = function (objDom) {
-	if (!this.mapOrFct) {
+	if (!this.builder) {
 		return;
 		}
-	if (typeof this.mapOrFct === 'function') {
 		this.dom= objDom;
-		this.mapOrFct(this);
-		
-		} else {
-	$.each(Object.keys(this.mapOrFct),function (i ,val) {
-		objDom.attr(val,this.mapOrFct[val]);			
-		});
-			
-			
-	}
-	
-	
-	};
+		this.builder(this);
+};
 	
 
-var $$= function (obj,mapOrFct) {
-	return new $$Model(obj,mapOrFct);
+var $$= function (obj,builder) {
+	return new $$Model(obj,builder);
 	
 	};
 	
@@ -73,14 +70,17 @@ $$.renderDomRec = function (objDom,model,parent,root)	 {
 	var value= model;	
 
 	if (value instanceof $$Model ) {
-		value.initAttributes(objDom);
+
 		value = model.value ;
 		model.parent = parent;
 		if (model !== root) {
 			model.root = root; }
+		model.initAttributes(objDom);
 		
 
-		}
+		} else {
+	model =parent;		
+	}
 	if ($$Model.isString(value)) {
 		objDom.empty();
 		objDom.text(value);
@@ -95,9 +95,15 @@ $$.renderDomRec = function (objDom,model,parent,root)	 {
 			div.attr("id",idx);
 			div.html(srcHtml);
 			$$.renderDomRec(div,val,model,root);
-			$.each(div.children(), function (i,o){
-			objDom.append($(o));
-			});
+			if (srcHtml.trim()==="") {
+				if (typeof val ==="string"){
+					objDom.text(val);
+				}
+			}else {
+				$.each(div.children(), function (i,o){
+				objDom.append($(o));
+				});
+			}
 			});	
 		return;
 		
